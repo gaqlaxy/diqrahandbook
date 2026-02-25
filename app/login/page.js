@@ -13,7 +13,9 @@ export default function LoginPage() {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (password === "diqradirector") { // Simple placeholder for demo
-            document.cookie = "auth=true; path=/";
+            // Set secure cookie flags for production/HTTPS compatibility
+            const maxAge = 60 * 60 * 24 * 7; // 7 days
+            document.cookie = `auth=true; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
             router.push("/");
         } else {
             setError("Invalid credentials. Access denied.");

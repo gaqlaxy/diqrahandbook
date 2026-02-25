@@ -72,7 +72,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                             : "hover:bg-white/5 text-brand-pearl/60 hover:text-brand-pearl"
                                     )}
                                 >
-                                    <item.icon className={cn("w-5 h-5 flex-shrink-0", pathname === item.href ? "text-brand-charcoal" : "group-hover:text-brand-accent")} />
+                                    <item.icon className={cn("w-5 h-5 shrink-0", pathname === item.href ? "text-brand-charcoal" : "group-hover:text-brand-accent")} />
                                     {isOpen && (
                                         <span className="text-sm font-medium tracking-wide">
                                             {item.name}

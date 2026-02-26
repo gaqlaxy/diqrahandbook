@@ -1,16 +1,31 @@
 "use client";
 
 import React from "react";
-import { Search, Bell, User, Clock } from "lucide-react";
+import { Search, Bell, User, Clock, LogOut } from "lucide-react";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 
 export default function Header({ sidebarOpen }) {
     const [currentDate, setCurrentDate] = React.useState(new Date());
+    const router = useRouter();
 
     React.useEffect(() => {
         const timer = setInterval(() => setCurrentDate(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            await fetch("/api/auth/session", { method: "DELETE" });
+            router.push("/login");
+            router.refresh();
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     return (
         <header className="h-20 sticky top-0 z-40 bg-brand-pearl/80 backdrop-blur-md border-b border-brand-charcoal/5 flex items-center justify-between px-8">
@@ -60,15 +75,26 @@ export default function Header({ sidebarOpen }) {
                         <Bell className="w-5 h-5 text-brand-muted" />
                         <span className="absolute top-2 right-2 w-2 h-2 bg-brand-accent rounded-full border-2 border-brand-pearl" />
                     </button>
-                    <button className="flex items-center gap-3 p-1.5 rounded-full hover:bg-brand-charcoal/5 transition-colors group">
-                        <div className="w-8 h-8 rounded-full bg-brand-charcoal text-brand-pearl flex items-center justify-center font-bold text-xs ring-2 ring-transparent group-hover:ring-brand-accent/30 transition-all">
-                            JD
-                        </div>
-                        <div className="hidden lg:block text-left">
-                            <p className="text-xs font-bold leading-none">John Director</p>
-                            <p className="text-[10px] text-brand-muted font-medium">Managing Partner</p>
-                        </div>
-                    </button>
+
+                    <div className="flex items-center gap-3 pl-2">
+                        <button className="flex items-center gap-3 p-1.5 rounded-full hover:bg-brand-charcoal/5 transition-colors group">
+                            <div className="w-8 h-8 rounded-full bg-brand-charcoal text-brand-pearl flex items-center justify-center font-bold text-xs ring-2 ring-transparent group-hover:ring-brand-accent/30 transition-all">
+                                JD
+                            </div>
+                            <div className="hidden lg:block text-left">
+                                <p className="text-xs font-bold leading-none">John Director</p>
+                                <p className="text-[10px] text-brand-muted font-medium">Managing Partner</p>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={handleLogout}
+                            className="p-2 rounded-full hover:bg-red-50 text-brand-muted hover:text-red-500 transition-colors"
+                            title="Sign Out"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>

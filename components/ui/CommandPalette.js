@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, FileText, Shield, Wallet, Briefcase, Gavel, Umbrella, AlertTriangle, BarChart3, BookOpen, Lock, Leaf, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,7 @@ const items = [
     { name: "Project Oversight", slug: "oversight", icon: Briefcase },
     { name: "Sustainability & ESG", slug: "sustainability", icon: Leaf },
     { name: "Legal & Compliance", slug: "legal", icon: Gavel },
-    { name: "Digital & Cyber", slug: "cybersecurity", icon: Lock },
+    { name: "Digital & Cyber", slug: "cybersecurity", icon: Shield }, // Sunk to Shield for consistency
     { name: "Supply Chain", slug: "supplychain", icon: Truck },
     { name: "Brand & Reputation", slug: "brand", icon: Umbrella },
     { name: "Crisis Management", slug: "crisis", icon: AlertTriangle },
@@ -23,7 +23,9 @@ const items = [
 export default function CommandPalette() {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const router = useRouter();
+    const listRef = useRef(null);
 
     useEffect(() => {
         const down = (e) => {
@@ -41,11 +43,41 @@ export default function CommandPalette() {
         ? items
         : items.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()));
 
+    // Reset selected index when query changes
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [query]);
+
     const handleSelect = (slug) => {
         router.push(`/${slug}`);
         setOpen(false);
         setQuery("");
     };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setSelectedIndex((prev) => (prev + 1) % filteredItems.length);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setSelectedIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
+        } else if (e.key === "Enter" && filteredItems.length > 0) {
+            e.preventDefault();
+            handleSelect(filteredItems[selectedIndex].slug);
+        } else if (e.key === "Escape") {
+            setOpen(false);
+        }
+    };
+
+    // Scroll selected item into view
+    useEffect(() => {
+        if (listRef.current) {
+            const selectedElement = listRef.current.children[selectedIndex];
+            if (selectedElement) {
+                selectedElement.scrollIntoView({ block: "nearest" });
+            }
+        }
+    }, [selectedIndex]);
 
     return (
         <AnimatePresence>
@@ -74,26 +106,31 @@ export default function CommandPalette() {
                                 className="w-full px-4 py-6 text-lg outline-none bg-transparent"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
                             />
                             <kbd className="hidden sm:inline-block px-2 py-1 rounded border border-brand-charcoal/10 text-[10px] uppercase font-bold text-brand-muted bg-brand-pearl">
                                 ESC
                             </kbd>
                         </div>
 
-                        <div className="max-h-[60vh] overflow-y-auto p-2">
+                        <div className="max-h-[60vh] overflow-y-auto p-2" ref={listRef}>
                             {filteredItems.length > 0 ? (
                                 <div className="grid gap-1">
-                                    {filteredItems.map((item) => (
+                                    {filteredItems.map((item, index) => (
                                         <button
-                                            key={item.slug}
+                                            key={index}
                                             onClick={() => handleSelect(item.slug)}
-                                            className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-brand-pearl group transition-colors text-left"
+                                            onMouseEnter={() => setSelectedIndex(index)}
+                                            className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-colors text-left group ${selectedIndex === index ? "bg-brand-pearl" : "hover:bg-brand-pearl/50"
+                                                }`}
                                         >
-                                            <div className="w-10 h-10 bg-brand-pearl rounded-lg flex items-center justify-center group-hover:bg-brand-accent transition-colors">
-                                                <item.icon className="w-5 h-5 text-brand-charcoal" />
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${selectedIndex === index ? "bg-brand-accent text-brand-pearl" : "bg-brand-pearl group-hover:bg-brand-accent group-hover:text-brand-pearl"
+                                                }`}>
+                                                <item.icon className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-brand-charcoal">
+                                                <p className={`font-semibold transition-colors ${selectedIndex === index ? "text-brand-accent" : "text-brand-charcoal"
+                                                    }`}>
                                                     {item.name}
                                                 </p>
                                                 <p className="text-xs text-brand-muted">
@@ -112,7 +149,11 @@ export default function CommandPalette() {
 
                         <div className="bg-brand-pearl px-4 py-3 flex items-center justify-between text-[10px] text-brand-muted font-bold uppercase tracking-widest">
                             <span>Diqra | Executive Control</span>
-                            <span>Search Mode</span>
+                            <div className="flex gap-2">
+                                <span>Arrows to navigate</span>
+                                <span>&bull;</span>
+                                <span>Enter to select</span>
+                            </div>
                         </div>
                     </motion.div>
                 </div>

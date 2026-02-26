@@ -40,8 +40,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
     return (
         <aside className={cn(
-            "fixed left-0 top-0 h-full bg-brand-charcoal text-brand-pearl transition-all duration-300 ease-in-out z-50",
-            isOpen ? "w-72" : "w-20"
+            "fixed top-0 h-full bg-brand-charcoal text-brand-pearl transition-all duration-300 ease-in-out z-50",
+            // Desktop behavior
+            "lg:left-0",
+            isOpen ? "w-72" : "w-20",
+            // Mobile behavior
+            !isOpen ? "-left-full lg:left-0" : "left-0"
         )}>
             <div className="flex flex-col h-full">
                 {/* Logo Section */}
